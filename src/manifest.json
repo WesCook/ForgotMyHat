@@ -1,0 +1,5 @@
+{
+	"namespace": "forgotMyHat",
+	"icon": "assets/hat-icon.png",
+	"setup": "setup.mjs"
+}
