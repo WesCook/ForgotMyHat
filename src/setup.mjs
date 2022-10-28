@@ -1,6 +1,13 @@
 export function setup({ settings, onInterfaceReady }) {
 	// Settings
 	createSettings(settings);
+
+	// Interface Setup
+	onInterfaceReady(ctx => {
+		// Watch for node changes to <body>
+		const observer = new MutationObserver(records => mutationCallback(records));
+		observer.observe(document.body, { childList: true });
+	});
 }
 
 function createSettings(settings) {
@@ -26,4 +33,8 @@ function createSettings(settings) {
 			{ value: "forever", display: "Forever" }
 		]
 	});
+}
+
+function mutationCallback(records) {
+	console.log(records);
 }
