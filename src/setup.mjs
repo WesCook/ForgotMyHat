@@ -36,5 +36,29 @@ function createSettings(settings) {
 }
 
 function mutationCallback(records) {
-	console.log(records);
+	if (!records) {
+		return;
+	}
+
+	records.forEach(record => {
+		// Only act on new nodes
+		if (record.addedNodes.length === 0) {
+			return;
+		}
+
+		// Examine new nodes
+		record.addedNodes.forEach(node => checkSwal(node));
+	});
+}
+
+function checkSwal(node) {
+	// Check for Welcome Back modal
+	if (!node.classList || !node.classList.contains("swal2-container") || Swal.getTitle().innerText !== "Welcome Back!") {
+		return;
+	}
+
+	// Close modal
+	// We also delete the node outright to prevent any animation from showing at all
+	Swal.close();
+	node.remove();
 }
