@@ -52,13 +52,25 @@ function mutationCallback(records) {
 }
 
 function checkSwal(node) {
-	// Check for Welcome Back modal
-	if (!node.classList || !node.classList.contains("swal2-container") || Swal.getTitle().innerText !== "Welcome Back!") {
-		return;
-	}
+	// Drop to the end of the event queue to let the game first update the modal's contents
+	setTimeout(() => {
+		// Check for Welcome Back modal
+		if (!node.classList?.contains("swal2-container") || Swal.getTitle().innerText !== "Welcome Back!") {
+			return;
+		}
 
-	// Close modal
-	// We also delete the node outright to prevent any animation from showing at all
-	Swal.close();
-	node.remove();
+		// Get string of time remaining
+		// eg. "You were gone for roughly 33&nbsp;seconds"
+		const timeSentence = Swal.getHtmlContainer()?.firstChild?.firstChild?.firstChild;
+		if (!timeSentence) {
+			return;
+		}
+
+		console.log(timeSentence);
+
+		// Close modal
+		// We also delete the node outright to prevent any animation from showing at all
+		Swal.close();
+		node.remove();
+	}, 0);
 }
