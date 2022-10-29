@@ -59,14 +59,35 @@ function checkSwal(node) {
 			return;
 		}
 
-		// Get string of time remaining
-		// eg. "You were gone for roughly 33&nbsp;seconds"
-		const timeSentence = Swal.getHtmlContainer()?.firstChild?.firstChild?.firstChild;
+		// Get string of time remaining.  Examples:
+		// "You were gone for roughly 33 seconds"
+		// "You were gone for roughly 3 minutes, 1 second"
+		// "You were gone for roughly 1 hour, 38 minutes, 54 seconds"
+		// "You were gone for roughly 1 day, 0 seconds"
+		const timeSentence = Swal.getHtmlContainer()?.firstChild?.firstChild?.firstChild?.textContent;
 		if (!timeSentence) {
 			return;
 		}
 
-		console.log(timeSentence);
+		// Extract duration from string using wizardy.  But also named capture groups.
+		const re = new RegExp(
+		"(((?<day>\\d+)\\sday).*?)?" +
+		"(((?<hour>\\d+)\\shour).*?)?" +
+		"(((?<min>\\d+)\\sminute).*?)?" +
+		"(((?<sec>\\d+)\\ssecond).*?)?$" );
+		const matches = timeSentence.match(re);
+		if (!matches) {
+			return;
+		}
+
+		// Calculate as total seconds
+		const days = matches.groups.day || 0;
+		const hours = matches.groups.hour || 0;
+		const mins = matches.groups.min || 0;
+		const secs = matches.groups.sec || 0;
+		const totalSeconds = secs + (mins*60) + (hours*3600) + (days*86400);
+
+		console.log("You were gone for " + totalSeconds + " seconds.");
 
 		// Close modal
 		// We also delete the node outright to prevent any animation from showing at all
