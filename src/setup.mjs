@@ -1,9 +1,8 @@
-export function setup({ settings, onInterfaceReady }) {
+export function setup({ settings, onCharacterSelectionLoaded }) {
 	// Settings
 	createSettings(settings);
 
-	// Interface Setup
-	onInterfaceReady(ctx => {
+	onCharacterSelectionLoaded(ctx => {
 		// Watch for node changes to <body>
 		const observer = new MutationObserver(records => mutationCallback(records));
 		observer.observe(document.body, { childList: true });
@@ -18,11 +17,8 @@ function createSettings(settings) {
 		type: "dropdown",
 		name: "duration",
 		label: "Duration",
-		hint: " ​ ​ Auto-dismiss popups within this duration", // Minor hack: using zero-width space characters to create margin
+		hint: " ​ ​ Auto-dismiss popups within this duration.", // Minor hack: using zero-width space characters to create margin
 		default: "10s",
-		onChange: newValue => {
-			// TODO: Implement settings callback
-		},
 		options: [
 			{ value: "disable", display: "0 seconds (Disable)" },
 			{ value: "1s", display: "1 second" },
@@ -85,13 +81,33 @@ function checkSwal(node) {
 		const hours = matches.groups.hour || 0;
 		const mins = matches.groups.min || 0;
 		const secs = matches.groups.sec || 0;
-		const totalSeconds = secs + (mins*60) + (hours*3600) + (days*86400);
+		const secondsAway = parseInt(secs) + (parseInt(mins) * 60) + (parseInt(hours) * 3600) + (parseInt(days) * 86400);
 
-		console.log("You were gone for " + totalSeconds + " seconds.");
+		// Get duration setting
+		const ctx = mod.getContext(import.meta);
+		const sectionGeneral = ctx.settings.section("General");
+		const duration = sectionGeneral.get("duration");
 
-		// Close modal
+		// Check if disabled
+		if (!duration || duration === "disable") {
+			return;
+		}
+
+		// Each possible duration in seconds
+		const durationsInSeconds = {
+			"1s": 1,
+			"10s": 10,
+			"1m": 60,
+			"10m": 600,
+			"1h": 3600,
+			"forever": -1
+		}
+
+		// Close modal if within selected duration
 		// We also delete the node outright to prevent any animation from showing at all
-		Swal.close();
-		node.remove();
+		if (secondsAway <= durationsInSeconds[duration] || duration === "forever") {
+			Swal.close();
+			node.remove();
+		}
 	}, 0);
 }
