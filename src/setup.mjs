@@ -1,5 +1,4 @@
 export function setup({ settings, onCharacterSelectionLoaded }) {
-	// Settings
 	createSettings(settings);
 
 	onCharacterSelectionLoaded(ctx => {
@@ -103,11 +102,20 @@ function checkSwal(node) {
 			"forever": -1
 		}
 
-		// Close modal if within selected duration
-		// We also delete the node outright to prevent any animation from showing at all
 		if (secondsAway <= durationsInSeconds[duration] || duration === "forever") {
+			// Close modal if within selected duration
 			Swal.close();
+
+			// We also delete the node outright to prevent any animation from showing.
+			// It's a little crude, but overwriting the animation classes is not enough
+			// to hide the effect.
 			node.remove();
+
+			// Clean up after any classes that were left behind
+			document.documentElement.classList.remove("swal2-shown");
+			document.documentElement.classList.remove("swal2-height-auto");
+			document.body.classList.remove("swal2-shown");
+			document.body.classList.remove("swal2-height-auto");
 		}
 	}, 0);
 }
