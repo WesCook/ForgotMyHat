@@ -8,6 +8,9 @@ A small quality-of-life mod to situationally dismiss the "Welcome Back" prompt i
 
 ## Changelog
 
+v1.1.0 - 2022-10-31
+* Changing tack on modal detection
+
 v1.0.1 - 2022-10-28
 * Clean up any remaining classes
 
