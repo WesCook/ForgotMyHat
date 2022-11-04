@@ -8,6 +8,9 @@ A small quality-of-life mod to situationally dismiss the "Welcome Back" prompt i
 
 ## Changelog
 
+v1.1.1 - 2022-11-03
+* Prevent temporary scrollbar on Township
+
 v1.1.0 - 2022-10-31
 * Changing tack on modal detection
 
