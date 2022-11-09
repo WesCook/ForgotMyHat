@@ -26,7 +26,7 @@ function createSettings(settings) {
 		type: "dropdown",
 		name: "duration",
 		label: "Duration",
-		hint: " ​ ​ Auto-dismiss Welcome Back popup within this duration.", // Minor hack: using zero-width space characters to create margin
+		hint: " ​ ​ Auto-dismiss Welcome Back popup within this time.", // Minor hack: using zero-width space characters to create margin
 		default: "10s",
 		options: [
 			{ value: "disable", display: "0 seconds (Disable)" },
@@ -54,8 +54,13 @@ function mutationCallback() {
 
 // Dismiss Swal if within duration, and apply custom attribute to prevent animations
 function checkSwal() {
-	// Check for Welcome Back modal
-	if (!Swal.isVisible() || Swal.isLoading() || Swal.getTitle()?.innerText !== "Welcome Back!") {
+	// Check that modal is in correct state
+	if (!Swal.isVisible() || Swal.isLoading()) {
+		return;
+	}
+
+	// Check that modal is "Welcome Back" prompt
+	if (Swal.getTitle()?.innerText !== getLangString('MISC_STRING', '3')) {
 		return;
 	}
 
@@ -64,61 +69,20 @@ function checkSwal() {
 	const sectionGeneral = ctx.settings.section("General");
 	const duration = sectionGeneral.get("duration");
 
-	// Check if disabled
+	// If mod setting is disabled, do nothing
 	if (!duration || duration === "disable") {
 		return;
 	}
 
-	// It's too early to read the modal's contents, but we'll delay its layout shift by overriding
-	// its CSS styles with a custom attribute.  This will be removed either after determining it's
-	// not needed (because the modal did show), or after a cleanup from the observer when the Swal
-	// classes are removed (indicating the animation is complete).
-	document.body.setAttribute("data-welcome-back", "");
+	// Close modal if within selected duration, and allow our CSS override to continue
+	const secondsAway = game.getOfflineTimeDiff().timeDiff / 1000;
+	if (secondsAway <= durationsInSeconds[duration] || duration === "forever") {
+		// A custom attribute is used to temporarily override the modal's CSS
+		// It's cleaned up automatically by the mutation observer when the animation finishes
+		document.body.setAttribute("data-welcome-back", "");
 
-	// Drop to the end of the event queue to let the game first update the modal's contents
-	setTimeout(() => {
-		const secondsAway = getSecondsFromMessage();
-
-		// Close modal if within selected duration, and allow our CSS override to continue
-		if (secondsAway <= durationsInSeconds[duration] || duration === "forever") {
-			Swal.clickConfirm(); // Swal.close() can cause the modal to get stuck as disabled if fired too rapidly
-		} else {
-			// Or if the duration isn't met and the modal is shown,
-			// remove our custom attribute and let their CSS show as normal
-			document.body.removeAttribute("data-welcome-back");
-		}
-	}, 0);
-}
-
-// Get second remaining from Welcome Back sentence.  Example sentences:
-//   "You were gone for roughly 33 seconds"
-//   "You were gone for roughly 3 minutes, 1 second"
-//   "You were gone for roughly 1 hour, 38 minutes, 54 seconds"
-//   "You were gone for roughly 1 day, 0 seconds"
-function getSecondsFromMessage() {
-	// Scan modal for Welcome Back string
-	const welcomeBackSentence = Swal.getHtmlContainer()?.firstChild?.firstChild?.firstChild?.textContent;
-	if (!welcomeBackSentence) {
-		console.error("Cannot find Welcome Back modal.");
-		return 0;
+		// Close Welcome Back modal
+		// Note: Swal.close() can cause the modal to get stuck as disabled if fired too rapidly
+		Swal.clickConfirm();
 	}
-
-	// Extract duration from string using wizardy.  But also named capture groups.
-	const re = new RegExp(
-		"(((?<day>\\d+)\\sday).*?)?" +
-		"(((?<hour>\\d+)\\shour).*?)?" +
-		"(((?<min>\\d+)\\sminute).*?)?" +
-		"(((?<sec>\\d+)\\ssecond).*?)?$" );
-	const matches = welcomeBackSentence.match(re);
-	if (!matches) {
-		console.error("Cannot read time remaining from Welcome Back modal.");
-		return 0;
-	}
-
-	// Calculate as total seconds and return
-	const days = matches.groups.day || 0;
-	const hours = matches.groups.hour || 0;
-	const mins = matches.groups.min || 0;
-	const secs = matches.groups.sec || 0;
-	return parseInt(secs) + (parseInt(mins) * 60) + (parseInt(hours) * 3600) + (parseInt(days) * 86400);
 }
