@@ -26,7 +26,7 @@ function createSettings(settings) {
 		type: "dropdown",
 		name: "duration",
 		label: "Duration",
-		hint: " ​ ​ Auto-dismiss Welcome Back popup within this time.", // Minor hack: using zero-width space characters to create margin
+		hint: "Auto-dismiss “Welcome Back” popup within this time.",
 		default: "10s",
 		options: [
 			{ value: "disable", display: "0 seconds (Disable)" },

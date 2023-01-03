@@ -8,6 +8,9 @@ A small quality-of-life mod to situationally dismiss the "Welcome Back" prompt i
 
 ## Changelog
 
+v1.2.1 - 2023-01-03
+* Improved letter spacing in settings
+
 v1.2.0 - 2022-11-09
 * Improved time detection
 * Now supports all languages
