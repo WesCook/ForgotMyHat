@@ -60,7 +60,7 @@ function checkSwal() {
 	}
 
 	// Check that modal is "Welcome Back" prompt
-	if (Swal.getTitle()?.innerText !== getLangString('MISC_STRING', '3')) {
+	if (Swal.getTitle()?.innerText !== getLangString("MISC_STRING_3")) {
 		return;
 	}
 

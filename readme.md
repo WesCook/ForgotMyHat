@@ -8,6 +8,9 @@ A small quality-of-life mod to situationally dismiss the "Welcome Back" prompt i
 
 ## Changelog
 
+v1.2.2 - 2023-04-11
+* Compatibility fix for Melvor v1.1.2
+
 v1.2.1 - 2023-01-03
 * Improved letter spacing in settings
 
