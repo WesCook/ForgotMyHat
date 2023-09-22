@@ -8,27 +8,30 @@ A small quality-of-life mod to situationally dismiss the "Welcome Back" prompt i
 
 ## Changelog
 
+v1.2.4 - 2023-09-22
+- Version bump for mod.io tagging
+
 v1.2.3 - 2023-04-11
-* Version bump for mod.io tagging
+- Version bump for mod.io tagging
 
 v1.2.2 - 2023-04-11
-* Compatibility fix for Melvor v1.1.2
+- Compatibility fix for Melvor v1.1.2
 
 v1.2.1 - 2023-01-03
-* Improved letter spacing in settings
+- Improved letter spacing in settings
 
 v1.2.0 - 2022-11-09
-* Improved time detection
-* Now supports all languages
+- Improved time detection
+- Now supports all languages
 
 v1.1.1 - 2022-11-03
-* Prevent temporary scrollbar on Township
+- Prevent temporary scrollbar on Township
 
 v1.1.0 - 2022-10-31
-* Changing tack on modal detection
+- Changing tack on modal detection
 
 v1.0.1 - 2022-10-28
-* Clean up any remaining classes
+- Clean up any remaining classes
 
 v1.0.0 - 2022-10-28
-* Initial release
+- Initial release
