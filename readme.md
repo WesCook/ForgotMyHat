@@ -8,6 +8,9 @@ A small quality-of-life mod to situationally dismiss the "Welcome Back" prompt i
 
 ## Changelog
 
+v1.3.0 - 2024-06-12
+- Updating detection method for Melvor 1.3
+
 v1.2.4 - 2023-09-22
 - Version bump for mod.io tagging
 

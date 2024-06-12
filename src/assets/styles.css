@@ -3,14 +3,3 @@ body[data-welcome-back] {
 	padding-right: 0 !important;
 	overflow-y: initial !important;
 }
-
-/*
-Hiding the Swal container is important to preventing the fade-out animation.
-Note: using display:none prevents Swal.close() or Swal.clickConfirm() from
-completing, and visibility:hidden is not effective in this case.  So instead
-we hide the element off-screen when the duration has not been met.
-*/
-body[data-welcome-back] .swal2-container {
-	position: absolute;
-	left: -10000px;
-}

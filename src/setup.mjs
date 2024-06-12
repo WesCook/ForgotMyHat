@@ -8,13 +8,21 @@ const durationsInSeconds = {
 	"forever": -1
 }
 
-export function setup({ settings, onCharacterSelectionLoaded }) {
+// Milliseconds since character was last played
+// Stored early because it's overwritten when the "Welcome Back" Swal first runs
+let timeDiff;
+
+export function setup({ settings, onCharacterSelectionLoaded, onCharacterLoaded }) {
 	createSettings(settings);
 
-	onCharacterSelectionLoaded(ctx => {
+	onCharacterSelectionLoaded(() => {
 		// Watch for class changes to <body> to detect Swal changes
-		const observer = new MutationObserver(() => mutationCallback());
+		const observer = new MutationObserver(() => bodyClassChange());
 		observer.observe(document.body, { childList: false, attributes: true, attributeFilter: ["class"] });
+	});
+
+	onCharacterLoaded(() => {
+		timeDiff = game.getOfflineTimeDiff().timeDiff;
 	});
 }
 
@@ -41,19 +49,9 @@ function createSettings(settings) {
 }
 
 // When <body> classes change, look for a Swal modal and update accordingly
-// Note: We could watch for the new DOM node instead, but it
-// fires too late to prevent a layout shift and paint.
-function mutationCallback() {
-	checkSwal();
-
-	// If Swal class is removed, we need to clean up our custom attribute
-	if (!document.body.classList.contains("swal2-shown")) {
-		document.body.removeAttribute("data-welcome-back");
-	}
-}
-
-// Dismiss Swal if within duration, and apply custom attribute to prevent animations
-function checkSwal() {
+// Note: We could watch for the new DOM node instead, but it fires too late
+// to prevent a layout shift and paint.
+function bodyClassChange() {
 	// Check that modal is in correct state
 	if (!Swal.isVisible() || Swal.isLoading()) {
 		return;
@@ -64,7 +62,7 @@ function checkSwal() {
 		return;
 	}
 
-	// Get duration setting
+	// Get duration from mod settings
 	const ctx = mod.getContext(import.meta);
 	const sectionGeneral = ctx.settings.section("General");
 	const duration = sectionGeneral.get("duration");
@@ -74,15 +72,10 @@ function checkSwal() {
 		return;
 	}
 
-	// Close modal if within selected duration, and allow our CSS override to continue
-	const secondsAway = game.getOfflineTimeDiff().timeDiff / 1000;
+	// Close "Welcome Back" modal if within selected duration
+	// Note: Swal.close() can cause the modal to get stuck as disabled if fired too rapidly
+	const secondsAway = timeDiff / 1000;
 	if (secondsAway <= durationsInSeconds[duration] || duration === "forever") {
-		// A custom attribute is used to temporarily override the modal's CSS
-		// It's cleaned up automatically by the mutation observer when the animation finishes
-		document.body.setAttribute("data-welcome-back", "");
-
-		// Close Welcome Back modal
-		// Note: Swal.close() can cause the modal to get stuck as disabled if fired too rapidly
 		Swal.clickConfirm();
 	}
 }
