@@ -8,6 +8,10 @@ A small quality-of-life mod to situationally dismiss the "Welcome Back" prompt i
 
 ## Changelog
 
+v1.3.1 - 2024-06-12
+- Further tweaking detection for web version
+- Increasing default duration from ten seconds to one minute
+
 v1.3.0 - 2024-06-12
 - Updating detection method for Melvor 1.3
 

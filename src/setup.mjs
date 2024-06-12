@@ -8,21 +8,22 @@ const durationsInSeconds = {
 	"forever": -1
 }
 
-// Milliseconds since character was last played
-// Stored early because it's overwritten when the "Welcome Back" Swal first runs
-let timeDiff;
+// Seconds since character was last loaded
+let secondsSinceLoaded = 0;
 
-export function setup({ settings, onCharacterSelectionLoaded, onCharacterLoaded }) {
+export function setup({ settings, onCharacterSelectionLoaded, patch }) {
 	createSettings(settings);
 
-	onCharacterSelectionLoaded(() => {
-		// Watch for class changes to <body> to detect Swal changes
-		const observer = new MutationObserver(() => bodyClassChange());
-		observer.observe(document.body, { childList: false, attributes: true, attributeFilter: ["class"] });
+	// Offline time value is overwritten when the "Welcome Back" Swal runs, so we capture it early in a patched function
+	patch(Game, 'runOfflineTicks').before(function() {
+		secondsSinceLoaded = this.getOfflineTimeDiff().timeDiff / 1000;
 	});
 
-	onCharacterLoaded(() => {
-		timeDiff = game.getOfflineTimeDiff().timeDiff;
+	// Watch for class changes to <body> to detect Swal changes
+	// This attaches the observer early, when when main menu is loaded
+	onCharacterSelectionLoaded(() => {
+		const observer = new MutationObserver(() => bodyClassChange());
+		observer.observe(document.body, { childList: false, attributes: true, attributeFilter: ["class"] });
 	});
 }
 
@@ -35,9 +36,9 @@ function createSettings(settings) {
 		name: "duration",
 		label: "Duration",
 		hint: "Auto-dismiss “Welcome Back” popup within this time.",
-		default: "10s",
+		default: "1m",
 		options: [
-			{ value: "disable", display: "0 seconds (Disable)" },
+			{ value: "disable", display: "Disable" },
 			{ value: "1s", display: "1 second" },
 			{ value: "10s", display: "10 seconds" },
 			{ value: "1m", display: "1 minute" },
@@ -49,8 +50,8 @@ function createSettings(settings) {
 }
 
 // When <body> classes change, look for a Swal modal and update accordingly
-// Note: We could watch for the new DOM node instead, but it fires too late
-// to prevent a layout shift and paint.
+// We could watch for the new DOM node instead, but it fires too late to
+// prevent a layout shift and paint.
 function bodyClassChange() {
 	// Check that modal is in correct state
 	if (!Swal.isVisible() || Swal.isLoading()) {
@@ -73,9 +74,9 @@ function bodyClassChange() {
 	}
 
 	// Close "Welcome Back" modal if within selected duration
-	// Note: Swal.close() can cause the modal to get stuck as disabled if fired too rapidly
-	const secondsAway = timeDiff / 1000;
-	if (secondsAway <= durationsInSeconds[duration] || duration === "forever") {
+	// Swal.close() can cause the modal to get stuck as disabled if fired too quickly,
+	// as happens when tabbing in and out quickly, so use clickConfirm() instead.
+	if (secondsSinceLoaded <= durationsInSeconds[duration] || duration === "forever") {
 		Swal.clickConfirm();
 	}
 }
