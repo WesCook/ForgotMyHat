@@ -15,12 +15,12 @@ export function setup({ settings, onCharacterSelectionLoaded, patch }) {
 	createSettings(settings);
 
 	// Offline time value is overwritten when the "Welcome Back" Swal runs, so we capture it early in a patched function
-	patch(Game, 'runOfflineTicks').before(function() {
-		secondsSinceLoaded = this.getOfflineTimeDiff().timeDiff / 1000;
+	patch(Game, 'exitOfflineLoop').before(function() {
+		secondsSinceLoaded = (Date.now() - this._offlineInfo.startTime) / 1000;
 	});
 
 	// Watch for class changes to <body> to detect Swal changes
-	// This attaches the observer early, when when main menu is loaded
+	// This attaches the observer early, when main menu is loaded
 	onCharacterSelectionLoaded(() => {
 		const observer = new MutationObserver(() => bodyClassChange());
 		observer.observe(document.body, { childList: false, attributes: true, attributeFilter: ["class"] });
