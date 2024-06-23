@@ -1,5 +1,0 @@
-/* If data attribute is applied, override Swal's styles to prevent layout shift */
-body[data-welcome-back] {
-	padding-right: 0 !important;
-	overflow-y: initial !important;
-}

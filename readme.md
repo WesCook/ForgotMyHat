@@ -8,6 +8,10 @@ A small quality-of-life mod to situationally dismiss the "Welcome Back" prompt i
 
 ## Changelog
 
+v1.5.0 - 2024-06-23
+- New method for dismissing modals.  Instead of waiting to trigger the modal confirm button, it now proxies the modal enqueue function to intercept and bypass certain modals.
+- This has the upside of not dismissing earlier modals when returning to a window where a new modal should be dismissed.  However, time comparisons are now based on when you focus the tab and not when offline calculations finish (ie. it won't match what the Welcome Back modal says).
+
 v1.4.0 - 2024-06-20
 - Yet another fix to time detection due to refactor in Melvor v1.3 ?11482
 - Fix contributed from BrendanMyers88

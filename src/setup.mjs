@@ -9,21 +9,55 @@ const durationsInSeconds = {
 }
 
 // Seconds since character was last loaded
-let secondsSinceLoaded = 0;
+let offlineTimestamp;
 
-export function setup({ settings, onCharacterSelectionLoaded, patch }) {
+export function setup({ settings, patch }) {
 	createSettings(settings);
 
-	// Offline time value is overwritten when the "Welcome Back" Swal runs, so we capture it early in a patched function
-	patch(Game, 'exitOfflineLoop').before(function() {
-		secondsSinceLoaded = (Date.now() - this._offlineInfo.startTime) / 1000;
+	// Offline time value is overwritten when the offline progression runs, so we capture it early in a patched function
+	patch(Game, 'enterOfflineLoop').before(function() {
+		offlineTimestamp = this.tickTimestamp;
 	});
 
-	// Watch for class changes to <body> to detect Swal changes
-	// This attaches the observer early, when main menu is loaded
-	onCharacterSelectionLoaded(() => {
-		const observer = new MutationObserver(() => bodyClassChange());
-		observer.observe(document.body, { childList: false, attributes: true, attributeFilter: ["class"] });
+	// Proxy and replace the "add modal to queue" function to intercept the "Welcome Back" modal when it's added.
+	// The game enqueues the modal before the offline ticks are calculated, then updates the message later.
+	// While we can't get the final time difference here, we can still compare it before the offline calculation runs.
+	window.addModalToQueue = new Proxy(addModalToQueue, {
+		apply(target, thisArg, args) {
+			// Get duration from mod settings
+			const ctx = mod.getContext(import.meta);
+			const sectionGeneral = ctx.settings.section("General");
+			const duration = sectionGeneral.get("duration");
+
+			// Should only be one argument, the modal, but just in case
+			// We use for...of instead of forEach so we can use break to call the original function early
+			for (const modal of args) {
+				// If mod is disabled, run as normal
+				if (!duration || duration === "disable") {
+					break;
+				}
+
+				// If patch failed to capture timestamp, run as normal
+				if (!offlineTimestamp) {
+					console.error("Forgot My Hat: Offline timestamp could not be captured");
+					break;
+				}
+
+				// If time away exceeds selected duration, run as normal
+				const secondsElapsed = Math.floor((Date.now() - offlineTimestamp) / 1000);
+				if (duration !== "forever" && secondsElapsed > durationsInSeconds[duration]) {
+					break;
+				}
+
+				// If "Welcome back" modal is found, return without running the original function
+				if (modal?.title === getLangString("MISC_STRING_3")) {
+					return; // Don't let modal run
+				}
+			};
+
+			// Call the original function with no modification
+			return target.apply(thisArg, args);
+		}
 	});
 }
 
@@ -47,36 +81,4 @@ function createSettings(settings) {
 			{ value: "forever", display: "Forever" }
 		]
 	});
-}
-
-// When <body> classes change, look for a Swal modal and update accordingly
-// We could watch for the new DOM node instead, but it fires too late to
-// prevent a layout shift and paint.
-function bodyClassChange() {
-	// Check that modal is in correct state
-	if (!Swal.isVisible() || Swal.isLoading()) {
-		return;
-	}
-
-	// Check that modal is "Welcome Back" prompt
-	if (Swal.getTitle()?.innerText !== getLangString("MISC_STRING_3")) {
-		return;
-	}
-
-	// Get duration from mod settings
-	const ctx = mod.getContext(import.meta);
-	const sectionGeneral = ctx.settings.section("General");
-	const duration = sectionGeneral.get("duration");
-
-	// If mod setting is disabled, do nothing
-	if (!duration || duration === "disable") {
-		return;
-	}
-
-	// Close "Welcome Back" modal if within selected duration
-	// Swal.close() can cause the modal to get stuck as disabled if fired too quickly,
-	// as happens when tabbing in and out quickly, so use clickConfirm() instead.
-	if (secondsSinceLoaded <= durationsInSeconds[duration] || duration === "forever") {
-		Swal.clickConfirm();
-	}
 }
